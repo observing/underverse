@@ -10,6 +10,10 @@ This module makes the following assumptions about your backlog of data:
 - The backlog has limit.
 - The backlog resets it's ids once the limit is reached.
 
+### Build status
+
+[![Build Status](https://travis-ci.org/observing/underverse.png)](https://travis-ci.org/observing/underverse)
+
 ### Installation
 
 The installation is done through `npm`
