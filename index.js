@@ -34,6 +34,8 @@ Underverse.prototype.__proto__ = require('events').EventEmitter.prototype;
  * @api public
  */
 Underverse.prototype.received = function received(id) {
+  if (id > this.size) return false;
+
   this.ring[id] = 1;
 
   //
@@ -89,6 +91,25 @@ Underverse.prototype.next = function next(id) {
   if (overflown) this.overflow();
 
   return overflown || id - 1 === this.cursor;
+};
+
+/**
+ * The ring has reached it's starting point again.
+ *
+ * @api private
+ */
+Underverse.prototype.overflow = function overflow() {
+  this.ring = new Array(this.size);
+};
+
+/**
+ * Set the initial position of the cursor.
+ *
+ * @param {Number} cursor
+ * @api public
+ */
+Underverse.prototype.initialize = function initialize(cursor) {
+  this.cursor = +cursor;
 };
 
 /**

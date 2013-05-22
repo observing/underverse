@@ -174,4 +174,24 @@ describe('Underverse', function () {
       });
     });
   });
+
+  describe('#next', function () {
+    it('correctly identifies the next item', function () {
+      var uv = new Underverse(100);
+
+      expect(uv.next(0)).to.equal(true);
+      uv.received(0);
+      expect(uv.next(0)).to.equal(false);
+      expect(uv.next(1)).to.equal(true);
+      expect(uv.next(10)).to.equal(false);
+    });
+
+    it('supports overflowing', function () {
+      var uv = new Underverse(100);
+
+      uv.initialize(100);
+      expect(uv.next(100)).to.equal(false);
+      expect(uv.next(0)).to.equal(true);
+    });
+  });
 });
