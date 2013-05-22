@@ -30,6 +30,7 @@ Underverse.prototype.__proto__ = require('events').EventEmitter.prototype;
  * A new message is recieved, mark the position of the ring as fetched.
  *
  * @param {Number} id
+ * @returns {Boolean} The message was in order.
  * @api public
  */
 Underverse.prototype.received = function received(id) {
@@ -38,7 +39,10 @@ Underverse.prototype.received = function received(id) {
   //
   // Check if the message was successor of our previous received message.
   //
-  if (this.next(id)) return this.cursor = id;
+  if (this.next(id)) {
+    this.cursor = id;
+    return true;
+  }
 
   //
   // Find all the missing items between the received id and the current cursor
@@ -54,7 +58,7 @@ Underverse.prototype.received = function received(id) {
   //
   // There aren't items missing, so everything is probably still being fetched.
   //
-  if (!missing.length) return;
+  if (!missing.length) return false;
 
   this.emit('fetch', missing, function fetching(complete) {
     var state = complete ? 1 : 0;
@@ -63,6 +67,8 @@ Underverse.prototype.received = function received(id) {
       this.ring[position] = state;
     }, this);
   }.bind(this));
+
+  return false;
 };
 
 /**
@@ -94,10 +100,8 @@ Underverse.prototype.next = function next(id) {
  * @api private
  */
 Underverse.prototype.slice = function slice(start, end) {
-  if (start > this.size) start = this.size;
-  if (start < 0) start = 0;
-  if (end > this.size) end = this.size;
-  if (end < 0) end = 0;
+  if (start > this.size || start < 0) start = 0;
+  if (end > this.size || end < 0) end = 0;
 
   var cursor = start
     , sliced = [];
@@ -107,12 +111,17 @@ Underverse.prototype.slice = function slice(start, end) {
   //
   if (end === start) return sliced;
 
-  while (start !== end) {
+  while (cursor !== end) {
     sliced.push(cursor);
 
     cursor = cursor + 1;
-    if (cursor === this.size) cursor = 0;
+    if (cursor > this.size) cursor = 0;
   }
 
   return sliced;
 };
+
+//
+// Expose the module
+//
+module.exports = Underverse;
