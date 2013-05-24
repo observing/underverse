@@ -1,6 +1,6 @@
 {
   "name": "underverse",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "underverse is simple backlog management and administration module",
   "main": "index.js",
   "scripts": {
