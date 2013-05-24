@@ -5,13 +5,24 @@ describe('Underverse', function () {
     , chai = require('chai')
     , expect = chai.expect;
 
+  chai.Assertion.includeStack = true;
+
   it('should be exposed as a function', function () {
     expect(Underverse).to.be.a('function');
   });
 
   it('should configure the size/length of the ring', function () {
-    var uv = new Underverse(100);
+    var uv = new Underverse(100, 0);
     expect(uv.ring.length).to.equal(100);
+  });
+
+  it('sets the current position of the cursor', function () {
+    var uv = new Underverse(100, 20);
+
+    expect(uv.position).to.equal(20);
+
+    uv.cursor(40);
+    expect(uv.position).to.equal(40);
   });
 
   it('is an EventEmitter', function () {
@@ -28,8 +39,27 @@ describe('Underverse', function () {
       expect(uv.ring[0]).to.equal(1);
     });
 
+    it('should not return true if no cursor was set', function () {
+      var uv = new Underverse();
+
+      expect(uv.received(0)).to.equal(false);
+      expect(uv.received(1)).to.equal(false);
+      expect(uv.received(2)).to.equal(false);
+      expect(uv.received(1)).to.equal(false);
+      expect(uv.received(6)).to.equal(false);
+
+      expect(uv.ring[3]).to.equal(undefined);
+      uv.cursor(10);
+      expect(uv.ring[3]).to.equal(1);
+
+      expect(uv.received(9)).to.equal(false);
+      expect(uv.received(10)).to.equal(false);
+      expect(uv.received(11)).to.equal(true);
+    });
+
     it('returns true if the id was in order', function () {
       var uv = new Underverse();
+      uv.cursor(-1);
 
       expect(uv.received(0)).to.equal(true);
       expect(uv.received(1)).to.equal(true);
@@ -40,6 +70,7 @@ describe('Underverse', function () {
 
     it('emits `fetch` when data is missing', function (done) {
       var uv = new Underverse();
+      uv.cursor(-1);
 
       uv.on('fetch', function (missing, mark) {
         expect(missing).to.be.a('array');
@@ -58,6 +89,7 @@ describe('Underverse', function () {
 
     it('emits `fetch` with the missing ids not those are currently fetching', function (done) {
       var uv = new Underverse();
+      uv.cursor(-1);
 
       uv.once('fetch', function (missing, mark) {
         expect(missing).to.be.a('array');
@@ -91,6 +123,7 @@ describe('Underverse', function () {
 
     it('provides the `fetch` event with a mark function', function (done) {
       var uv = new Underverse();
+      uv.cursor(-1);
 
       uv.once('fetch', function (missing, mark) {
         expect(mark).to.be.a('function');
@@ -121,6 +154,8 @@ describe('Underverse', function () {
     it('only emits `fetch` when theres data missing', function () {
       var uv = new Underverse()
         , called = 0;
+
+      uv.cursor(-1);
 
       uv.on('fetch', function (missing, mark) {
         mark();
@@ -178,6 +213,7 @@ describe('Underverse', function () {
   describe('#next', function () {
     it('correctly identifies the next item', function () {
       var uv = new Underverse(100);
+      uv.cursor(-1);
 
       expect(uv.next(0)).to.equal(true);
       uv.received(0);
@@ -188,8 +224,8 @@ describe('Underverse', function () {
 
     it('supports overflowing', function () {
       var uv = new Underverse(100);
+      uv.cursor(100);
 
-      uv.initialize(100);
       expect(uv.next(100)).to.equal(false);
       expect(uv.next(0)).to.equal(true);
     });
