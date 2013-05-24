@@ -14,14 +14,17 @@
  *
  * @constructor
  * @param {Number} size The size of the backlog
+ * @param {Number} cursor Initial start position
  * @api public
  */
-function Underverse(size) {
+function Underverse(size, cursor) {
   if (!(this instanceof Underverse)) return new Underverse(size);
 
-  this.size = size || 10000;          // The size of the backlog
-  this.ring = new Array(this.size);   // The ring we are going to abuse
-  this.cursor = -1;                   // Current position of the cursor
+  this.size = size || 10000;            // The size of the backlog.
+  this.ring = new Array(this.size);     // The ring we are going to abuse.
+  this.position = isNaN(+cursor)        // Current position of the cursor.
+    ? 'inactive'
+    : +cursor;
 }
 
 Underverse.prototype.__proto__ = require('events').EventEmitter.prototype;
@@ -30,19 +33,23 @@ Underverse.prototype.__proto__ = require('events').EventEmitter.prototype;
  * A new message is recieved, mark the position of the ring as fetched.
  *
  * @param {Number} id
- * @returns {Boolean} The message was in order.
+ * @returns {Boolean} The message was in order or should be queued.
  * @api public
  */
 Underverse.prototype.received = function received(id) {
   if (id > this.size) return false;
-
   this.ring[id] = 1;
+
+  //
+  // The cursor position hasn't been set yet.
+  //
+  if (this.position === 'inactive') return false;
 
   //
   // Check if the message was successor of our previous received message.
   //
   if (this.next(id)) {
-    this.cursor = id;
+    this.position = id;
     return true;
   }
 
@@ -53,7 +60,7 @@ Underverse.prototype.received = function received(id) {
   var underverse = this
     , missing;
 
-  missing = this.slice(this.cursor + 1, id).filter(function filter(position) {
+  missing = this.slice(this.position + 1, id).filter(function filter(position) {
     return this.ring[position] === undefined;
   }, this);
 
@@ -81,7 +88,7 @@ Underverse.prototype.received = function received(id) {
  * @api private
  */
 Underverse.prototype.next = function next(id) {
-  var overflowing = this.cursor === this.size
+  var overflowing = this.position === this.size
     , overflown = overflowing && id === 0;
 
   //
@@ -90,7 +97,7 @@ Underverse.prototype.next = function next(id) {
   //
   if (overflown) this.overflow();
 
-  return overflown || id - 1 === this.cursor;
+  return overflown || id - 1 === this.position;
 };
 
 /**
@@ -105,11 +112,15 @@ Underverse.prototype.overflow = function overflow() {
 /**
  * Set the initial position of the cursor.
  *
- * @param {Number} cursor
+ * @param {Number} id
  * @api public
  */
-Underverse.prototype.initialize = function initialize(cursor) {
-  this.cursor = +cursor;
+Underverse.prototype.start = Underverse.prototype.cursor = function initialize(id) {
+  this.position = +id;
+
+  this.slice(0, this.position).forEach(function mark(cursor) {
+    this.ring[cursor] = 1;
+  }, this);
 };
 
 /**
