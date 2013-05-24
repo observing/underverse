@@ -89,7 +89,10 @@ Underverse.prototype.received = function received(id) {
  */
 Underverse.prototype.next = function next(id) {
   var overflowing = this.position === this.size
-    , overflown = overflowing && id === 0;
+    , overflown = overflowing && id === 0
+    , position = this.position
+    , prev = id - 1
+    , isnext = prev === position;
 
   //
   // The backlog has overflown as it reached it maxed capacity and the backlog
@@ -97,7 +100,7 @@ Underverse.prototype.next = function next(id) {
   //
   if (overflown) this.overflow();
 
-  return overflown || id - 1 === this.position;
+  return overflown || isnext;
 };
 
 /**
@@ -118,7 +121,7 @@ Underverse.prototype.overflow = function overflow() {
 Underverse.prototype.start = Underverse.prototype.cursor = function initialize(id) {
   this.position = +id;
 
-  this.slice(0, this.position).forEach(function mark(cursor) {
+  this.slice(0, this.position + 1).forEach(function mark(cursor) {
     this.ring[cursor] = 1;
   }, this);
 };

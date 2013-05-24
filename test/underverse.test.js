@@ -31,6 +31,27 @@ describe('Underverse', function () {
     expect(uv).to.be.instanceOf(require('events').EventEmitter);
   });
 
+  describe('#cursor', function () {
+    it('marks all previous items as set', function () {
+      var uv = new Underverse(100)
+        , i;
+
+      for (i = 0; i <= 50; i++) {
+        expect(uv.ring[i]).to.equal(undefined);
+      }
+
+      uv.cursor(50);
+
+      for (i = 51; i <= 100; i++) {
+        expect(uv.ring[i]).to.equal(undefined);
+      }
+
+      for (i = 0; i <= 50; i++) {
+        expect(uv.ring[i]).to.equal(1);
+      }
+    });
+  });
+
   describe('#received', function () {
     it('marks the slot as received', function () {
       var uv = new Underverse();
