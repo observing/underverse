@@ -34,12 +34,11 @@ var Underverse = require('underverse')
 ```
 
 The snippet above creates a new `underverse` that works with a backlog that
-can contain `1000` items. We assume that the backlog is empty when the module is
-initialized if this is not the case (and you want to resume) you should set the
-initial id of log. For example if your queue is filled with 100/10000 slots:
+can contain `1000` items. You should set the initial id of log. For example if
+your queue is filled with 100/10000 slots:
 
 ```js
-uv.initialize(100);
+uv.cursor(100);
 ```
 
 As it could be possible that your messages get out of sync if you use a remote
